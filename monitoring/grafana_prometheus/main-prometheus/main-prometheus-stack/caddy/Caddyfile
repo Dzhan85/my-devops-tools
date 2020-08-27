@@ -1,0 +1,50 @@
+:9090 {
+    basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
+    proxy / prometheus:9090 {
+            transparent
+        }
+
+    errors stderr
+    tls off
+}
+
+:9093 {
+    basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
+    proxy / alertmanager:9093 {
+            transparent
+        }
+
+    errors stderr
+    tls off
+}
+
+:9091 {
+    basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
+    proxy / pushgateway:9091 {
+            transparent
+        }
+
+    errors stderr
+    tls off
+}
+
+:3000 {
+    basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
+    proxy / grafana:3000 {
+            transparent
+            websocket
+        }
+
+    errors stderr
+    tls /etc/caddy/ssl/monitoring.pem /etc/caddy/ssl/monitoring.key
+}
+
+:8086 {
+    basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
+    proxy / influxdb:8086 {
+            transparent
+        }
+
+    errors stderr
+    tls off
+}

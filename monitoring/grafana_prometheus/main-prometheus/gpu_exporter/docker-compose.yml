@@ -1,0 +1,11 @@
+version: "3"
+services:
+  nvidia_gpu_exporter:
+    image: nvidia_gpu_prometheus_exporter
+    privileged: true
+    volumes: 
+      - /usr/lib/x86_64-linux-gnu/:/usr/lib/x86_64-linux-gnu/
+    environment: 
+      LD_LIBRARY_PATH: /usr/lib/x86_64-linux-gnu
+    ports: 
+      - 9445:9445

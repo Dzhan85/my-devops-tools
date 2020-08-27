@@ -1,0 +1,363 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: "docker-host-alpha"
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - "alert.rules"
+
+# A scrape configuration containing exactly one endpoint to scrape.
+scrape_configs:
+  # # Federation scrapping of Autonomous Car
+  # - job_name: "federate"
+  #   scrape_interval: 15s
+
+  #   honor_labels: true
+  #   metrics_path: "/federate"
+  #   basic_auth:
+  #     username: "admin"
+  #     password: "admin"
+
+  #   params:
+  #     'match[]':
+  #       # Export ALL metrics from remote
+  #       - '{__name__=~".*"}'
+
+  #   static_configs:
+  #     - targets:
+  #         - "192.168.1.37:9090"
+
+  - job_name: "nodeexporter"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["nodeexporter:9100"]
+        labels:
+          os: linux
+          type: local
+
+  - job_name: "cadvisor"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          os: linux
+          type: local
+
+  - job_name: "prometheus"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          os: linux
+          type: local
+
+  - job_name: "pushgateway"
+    scrape_interval: 10s
+    honor_labels: true
+    static_configs:
+      - targets: ["pushgateway:9091"]
+        labels:
+          os: linux
+          type: local
+
+  - job_name: "node_exporter_dockerhub"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["10.90.105.110:9100"]
+        labels:
+          os: linux
+          environment: production
+          agent: "node_exporter"
+
+  - job_name: "node_exporter_gnss_bpts"
+    scrape_interval: 5s
+    scheme: http
+    basic_auth:
+      username: "prometheus-access"
+      password: "prometheus-access"
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets: ["188.130.155.105:9100"]
+        labels:
+          os: linux
+          environment: production
+          agent: "node_exporter"
+      - targets: ["188.130.155.105:8080"]
+        labels:
+          os: linux
+          environment: production
+          agent: "cadvisor"
+
+  - job_name: "node_exporter_gitlab"
+    scrape_interval: 5s
+    basic_auth:
+      username: "prometheus-access"
+      password: "prometheus-access"
+    static_configs:
+      - targets: ["10.90.105.117:9100"]
+        labels:
+          os: linux
+          environment: production
+          agent: "node_exporter"
+      - targets: ["10.90.105.117:8080"]
+        labels:
+          os: linux
+          environment: production
+          agent: "cadvisor"
+
+  - job_name: "node_exporter_cordelianew"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["10.90.104.233:9100"]
+        labels:
+          os: linux
+          environment: production
+          agent: "node_exporter"
+
+  - job_name: "node_exporter_unihost-dg03"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["unihost-dg03.uni.innopolis.ru:9445"]
+        labels:
+          os: "linux"
+          type: "gpu"
+          agent: "nvidia_gpu_exporter"
+          environment: production
+      - targets: ["unihost-dg03.uni.innopolis.ru:9446"]
+        labels:
+          os: "linux"
+          environment: production
+          agent: "cadvisor"
+      - targets: ["unihost-dg03.uni.innopolis.ru:9447"]
+        labels:
+          os: "linux"
+          environment: production
+          agent: "node_exporter"
+
+  - job_name: "wmi_exporter_unihost-dg02"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["10.90.130.117:9182"]
+        labels:
+          os: "windows"
+          environment: production
+          agent: "wmi_exporter"
+
+  - job_name: "nvidia_cuda_DGX"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["10.90.130.32:9445"]
+        labels:
+          os: "linux"
+          type: "gpu"
+          agent: "nvidia_gpu_exporter"
+          environment: production
+      - targets: ["10.90.130.32:8080"]
+        labels:
+          os: "linux"
+          environment: production
+          agent: "cadvisor"
+      # DGX has node-exporter running by systemd, the number of metrics is limited by config
+      # Therefore we use a node exporter in Docker container.
+      - targets: ["10.90.130.32:9447"]
+        labels:
+          os: "linux"
+          environment: production
+          agent: "node_exporter"
+
+  - job_name: "local-blackbox-icmp-probe"
+    metrics_path: /probe
+    params:
+      module: [icmp] # Look for a ICMP response
+    static_configs:
+      # Check external services
+      - targets:
+          - innopolis.ru # Check connectivity to Internet
+        labels:
+          type: internet
+          description: "ICMP: Inno site internet connection"
+      # GNSS BPTS
+      - targets:
+          - 188.130.155.105 # GNSS Offset Retranslator
+        labels:
+          description: "ICMP: GNSS BTPS"
+          type: gnss
+      ###
+      # VPN Gateways
+      - targets:
+          - vpn.university.innopolis.ru # University VPN Gateway
+        labels:
+          description: "ICMP: University VPN Gateway"
+          type: vpn
+    ###
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115 # The blackbox exporter's real hostname:port.
+
+  - job_name: "local-blackbox-http-probe"
+    metrics_path: /probe
+    params:
+      module: [http_2xx] # Look for a HTTP response
+    static_configs:
+      - targets:
+          - https://innopolis.ru # Check for connectivity to Univeristy side over TLS
+        labels:
+          type: internet
+          description: "HTTPS: Inno site internet connection"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115 # The blackbox exporter's real hostname:port.
+
+  - job_name: "local-blackbox-tcp-probe"
+    metrics_path: /probe
+    params:
+      module: [tcp_connect] # Look for a TCP response
+    static_configs:
+      - targets:
+          - 188.130.155.105:63002 # Check if GNSS Base Station data is availalble on TCP server
+        labels:
+          type: gnss
+          description: GNSS BS Position Correction Data
+      - targets:
+          - 188.130.155.105:8000 # Check if NTripCaster online
+        labels:
+          type: gnss
+          description: "TCP: GNSS NTripCaster status"
+      ### VPN
+      - targets:
+          - 188.130.155.105:1723 # Check if PPTP server on BTPS is online
+        labels:
+          type: vpn
+          description: "TCP: GNSS PPTPD server status"
+      ###
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115 # The blackbox exporter's real hostname:port.
+
+  - job_name: "local-blackbox-ssh-probe"
+    metrics_path: /probe
+    params:
+      module: [ssh_banner] # Look for a TCP response
+    static_configs:
+      - targets:
+          - 188.130.155.105:22 # Check if BTPS SSH server is active
+        labels:
+          type: ssh
+          description: "SSH: GNSS BTPS remote mgmt status"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115 # The blackbox exporter's real hostname:port.
+
+  - job_name: "BPTS_remote_blackbox_icmp_probe"
+    metrics_path: /probe
+    basic_auth:
+      username: "prometheus-access"
+      password: "prometheus-access"
+    params:
+      module: [icmp] # Look for a ICMP response
+    static_configs:
+      - targets:
+          - 10.112.0.110 # Check internal RPi3 connection
+        labels:
+          type: gnss
+          description: "ICMP: GNSS BS RPi3 over PPTP status"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 188.130.155.105:9115 # The blackbox exporter's real hostname:port.
+
+  - job_name: "BPTS_remote_blackbox_tcp_probe"
+    metrics_path: /probe
+    basic_auth:
+      username: "prometheus-access"
+      password: "prometheus-access"
+    params:
+      module: [tcp_connect] # Look for a TCP response
+    static_configs:
+      - targets:
+          - 10.112.0.1:32327 # Check TCP Server on BPTS
+        labels:
+          type: gnss
+          description: "TCP: GNSS BPTS over PPTP TCP server status"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 188.130.155.105:9115 # The blackbox exporter's real hostname:port.
+
+  - job_name: "BPTS_remote_blackbox_ssh_probe"
+    metrics_path: /probe
+    basic_auth:
+      username: "prometheus-access"
+      password: "prometheus-access"
+    params:
+      module: [ssh_banner] # Look for a TCP response
+    static_configs:
+      - targets:
+          - 10.112.0.110:22 # Check if GNSS BS RPi3 server is active
+        labels:
+          type: ssh
+          description: "SSH: GNSS BS RPi3 remote mgmt status"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 188.130.155.105:9115 # The blackbox exporter's real hostname:port.
+
+  ###
+  - job_name: "AutoCar-local-script-exporter-gnss-rtcmv3-port-probe"
+    metrics_path: /probe
+    params:
+      pattern: [test_gnss_rtcm_.*] # Look for everything
+    static_configs:
+      - targets:
+          - script-exporter:9172 # Check if RTCM messages are available connected
+        labels:
+          type: gnss
+          description: "TCP: GNSS BPTS RTCMv3.* Messages"
+  ###
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets:
+            - "alertmanager:9093"
+#  - job_name: 'nginx'
+#    scrape_interval: 10s
+#    static_configs:
+#      - targets: ['nginxexporter:9113']
+
+#  - job_name: 'aspnetcore'
+#    scrape_interval: 10s
+#    static_configs:
+#      - targets: ['eventlog-proxy:5000', 'eventlog:5000']

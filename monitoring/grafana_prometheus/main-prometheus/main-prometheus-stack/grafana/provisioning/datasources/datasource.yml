@@ -1,0 +1,23 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://prometheus:9090
+    basicAuth: false
+    isDefault: true
+    editable: true
+  - name: BPTS_Influxdb
+    type: influxdb
+    access: proxy
+    url: https://influxdb.robolab.innopolis.ru
+    basicAuth: false
+    user: ${REMOTE_INFLUXDB_USER}
+    password: ${REMOTE_INFLUXDB_USER_PASSWORD}
+    editable: true
+    secureJsonData:
+    jsonData:
+      tlsSkipVerify: true
+    database: ${REMOTE_INFLUXDB_DB}

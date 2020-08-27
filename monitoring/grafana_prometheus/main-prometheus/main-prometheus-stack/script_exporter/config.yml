@@ -1,0 +1,10 @@
+scripts:
+  # Test if can read from BTPS RTCMv3.0 TCP port
+  - name: "test_gnss_rtcm_v3.0_port"
+    script: "python3 /etc/script-exporter/scripts/test_socket_data.py  188.130.155.105 63002"
+    timeout: 3
+
+  # Test if can read from BTPS RTCMv3.0 TCP port
+  - name: "test_gnss_rtcm_v3.2_port"
+    script: "python3 /etc/script-exporter/scripts/test_socket_data.py  188.130.155.105 63001"
+    timeout: 3

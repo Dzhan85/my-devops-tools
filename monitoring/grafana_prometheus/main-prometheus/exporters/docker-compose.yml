@@ -1,0 +1,58 @@
+version: "3"
+services:
+  nodeexporter:
+    image: prom/node-exporter:v0.18.1
+    restart: unless-stopped
+    expose:
+      - 9100
+    depends_on:
+      - caddy
+
+  cadvisor:
+    image: gcr.io/google-containers/cadvisor:v0.36.0
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    expose:
+      - 8080
+    depends_on:
+      - caddy
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.16.0
+    container_name: blackexporter
+    restart: unless-stopped
+    expose:
+      - 9115
+    volumes:
+      - ./blackbox_exporter/config.yml:/etc/blackbox_exporter/config.yml
+    depends_on:
+      - caddy
+
+  snmp-exporter:
+    image: prom/snmp-exporter:v0.18.0
+    container_name: snmpexporter
+    restart: unless-stopped
+    expose:
+      - 9116
+    depends_on:
+      - caddy
+
+  caddy:
+    image: caddy:2.0.0-alpine
+    restart: unless-stopped
+    volumes:
+      - ./caddy:/etc/caddy
+    environment:
+      - ADMIN_USER=${ADMIN_USER}
+      # caddy hash-password admin
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    ports:
+      - 9100:9100
+      - 8080:8080
+      - 9115:9115
+      - 9116:9116
+      - 9445:9445

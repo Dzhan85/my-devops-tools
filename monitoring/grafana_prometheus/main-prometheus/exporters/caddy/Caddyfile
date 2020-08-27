@@ -1,0 +1,53 @@
+:9100 {
+
+basicauth *  {
+    {$ADMIN_USER} {$ADMIN_PASSWORD}
+}
+
+reverse_proxy nodeexporter:9100 
+
+}
+
+
+:8080 {
+
+basicauth *  {
+    {$ADMIN_USER} {$ADMIN_PASSWORD}
+}
+
+reverse_proxy cadvisor:8080 
+
+}
+
+
+:9445 {
+
+basicauth *  {
+    {$ADMIN_USER} {$ADMIN_PASSWORD}
+}
+
+reverse_proxy nvidia_gpu_exporter:9445 
+
+
+}
+
+
+:9115 {
+
+basicauth *  {
+    {$ADMIN_USER} {$ADMIN_PASSWORD}
+}
+
+reverse_proxy blackbox-exporter:9115
+}
+
+:9116 {
+
+basicauth *  {
+    {$ADMIN_USER} {$ADMIN_PASSWORD}
+}
+
+reverse_proxy snmp-exporter:9116 
+
+
+}
