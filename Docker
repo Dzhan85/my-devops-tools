@@ -1,0 +1,16 @@
+#Настройка Proxy для Docker
+vim /etc/default/docker
+export http_proxy="http://192.168.0.103:3128"
+export https_proxy="http://192.168.0.103:3128"
+
+systemctl restart docker
+
+------------------------------------------------
+mkdir -p /etc/systemd/system/docker.service.d/ && vim /etc/systemd/system/docker.service.d/http-proxy.conf
+
+[Service]
+Environment="HTTP_PROXY=http://192.168.0.103:3128/"
+Environment="HTTPS_PROXY=http://192.168.0.103:3128/"
+Environment="NO_PROXY=localhost,127.0.0.1"
+
+systemctl daemon-reload && systemctl restart docker

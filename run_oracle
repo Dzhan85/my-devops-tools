@@ -1,0 +1,19 @@
+Ручной запуск экземпляра БД Oracle
+
+Переключаемся под пользователя oracle
+su - oracle
+
+Перезапускаем listener
+lsnrctl stop
+lsnrctl start
+
+Логинимся под sysdba и запускам бд
+sqlplus / as sysdba
+startup force
+
+Проверка состояния БД:
+su - oracle
+sqlplus / as sysdba
+select open_mode from v$database;
+
+Если всё хорошо статус должен быть READ WRITE

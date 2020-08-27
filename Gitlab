@@ -1,0 +1,18 @@
+
+
+LINK='тот гит с которого хотим стянуть репозиторий' && DIR='/home/user/git'
+git clone --mirror "$LINK" "$DIR"
+cd $DIR && git lfs fetch --all
+LINK_DST='тот гит в который вливаем репозиторий' && REMOTE='vpn'
+git remote add "$REMOTE" "$LINK_DST" && git lfs push --all "$REMOTE" && git push --all "$REMOTE"
+
+
+#Пример
+
+```python=
+LINK='https://coderepo.xxxx.ru/ixxxx-projects/android/store/vpn.git' && DIR='/home/user/git'
+git clone --mirror "$LINK" "$DIR"
+cd "$DIR" && git lfs fetch --all
+LINK_DST='http://192.168.0.101/vpn/vpn.git' && REMOTE='vpn'
+git remote add "$REMOTE" "$LINK_DST" && git lfs push --all "$REMOTE" && git push --all "$REMOTE"
+```
