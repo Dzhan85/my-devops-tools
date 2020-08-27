@@ -1,0 +1,11 @@
+#Нахождение топ крупнейших каталогов в Linux
+du -sh /*/ 2>/dev/null | sort -rh | head -n 10
+
+#Обнаружение больших каталогов и файлов в Linux
+du -ah /* 2>/dev/null | sort -rh | head -n 10
+
+#Нахождение топ самых больших файлов в Linux
+find / -type f -exec du -sh {} 2>/dev/null + | sort -rh | head -n 10
+
+#Нахождение самых больших файлов с определенным расширением в Linux
+find / -type f -iname "*.deb" -exec du -sh {} + | sort -rh | head -10

@@ -1,0 +1,11 @@
+user
+ip_addr=`/sbin/ifconfig eth0 | /usr/bin/perl -ne 'if ( m/^\s*inet (?:addr:)?([\d.]+).*?cast/ ) { print qq($1\n); exit 0; }'`
+PS1=$ip_addr-'\[\e[0;32m\]\t \u@\h:\[\e[0;34m\]\w\n\$ \[\033[m\]'
+
+PS1='\[\e[0;32m\]\t \u@\h:\[\e[0;34m\]\w\n\$ \[\033[m\]'
+
+root
+ip_addr=`/sbin/ifconfig eth0 | /usr/bin/perl -ne 'if ( m/^\s*inet (?:addr:)?([\d.]+).*?cast/ ) { print qq($1\n); exit 0; }'`
+PS1=$ip_addr-'\[\033[31m\]\t \u@\h:\[\033[m\]\w\[\033[01;31m\] \n\$ \[\033[m\]'
+
+PS1='\[\033[31m\]\t \u@\h:\[\033[m\]\w\[\033[01;31m\] \n\$ \[\033[m\]'
